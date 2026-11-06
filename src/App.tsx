@@ -197,11 +197,11 @@ function clamp(value: number, min: number, max: number) {
 function App() {
   const [distanceToSubjectInInches, setDistanceToSubjectInInches] =
     useState(72);
-  const [focalLengthInMillimeters, setFocalLengthInMillimeters] = useState(50);
-  const [aperture, setAperture] = useState(1.8);
+  const [focalLengthInMillimeters, setFocalLengthInMillimeters] = useState(18);
+  const [aperture, setAperture] = useState(3.5);
   const [subject, setSubject] = useState("Human");
   const [system, setSystem] = useState<(typeof SYSTEMS)[number]>("Metric");
-  const [sensor, setSensor] = useState("35mm (full frame)");
+  const [sensor, setSensor] = useState("APS-C");
   const [customSensorWidth, setCustomSensorWidth] = useState(36);
 const [customSensorHeight, setCustomSensorHeight] = useState(24);
 
@@ -215,8 +215,8 @@ const [customSensorHeight, setCustomSensorHeight] = useState(24);
   };
   const sensorName = (k: string) => t.sensors[k] ?? k;
 
-  const [cameraId, setCameraId] = useState("");
-  const [lensId, setLensId] = useState("");
+  const [cameraId, setCameraId] = useState("nikon-d5500");
+  const [lensId, setLensId] = useState("F-DX:Nikon:AF-S DX NIKKOR 18-55mm f/3.5-5.6G VR II");
   const camera = CAMERAS.find((c) => c.id === cameraId);
   const cameraLenses = lensesForCamera(camera);
   const lens = cameraLenses.find((l) => l.id === lensId);
@@ -1025,7 +1025,7 @@ const cropFactor = isCustomSensor
         <Box pt={2} pb={6} textAlign="center">
           <Button
             as="a"
-            href="https://github.com/jherr/depth-of-field"
+            href="https://github.com/rvarun7777/depth-of-field"
             target="_blank"
             rel="noreferrer"
             size="sm"

@@ -8,7 +8,7 @@
   "author": "Jack Herrington",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jherr/depth-of-field.git"
+    "url": "https://github.com/rvarun7777/depth-of-field.git"
   },
   "scripts": {
     "dev": "vite",

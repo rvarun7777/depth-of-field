@@ -67,6 +67,7 @@ export const CAMERAS: Camera[] = [
   { id: "canon-r10", brand: "Canon", model: "EOS R10", sensor: APSC_CANON, mounts: ["RF-S", "RF"] },
   { id: "canon-r50", brand: "Canon", model: "EOS R50", sensor: APSC_CANON, mounts: ["RF-S", "RF"] },
   // Nikon
+  { id: "nikon-d5500", brand: "Nikon", model: "D5500", sensor: APSC, mounts: ["F-DX"] },
   { id: "nikon-z9", brand: "Nikon", model: "Z9", sensor: FF, mounts: ["Z"] },
   { id: "nikon-z8", brand: "Nikon", model: "Z8", sensor: FF, mounts: ["Z"] },
   { id: "nikon-z6iii", brand: "Nikon", model: "Z6III", sensor: FF, mounts: ["Z"] },
@@ -100,6 +101,10 @@ export const CAMERAS: Camera[] = [
 type Row = [string, string, number, number, number, number?];
 
 const RAW: Record<string, Row[]> = {
+  "F-DX": [
+    ["Nikon", "AF-S DX NIKKOR 18-55mm f/3.5-5.6G VR II", 18, 55, 3.5, 5.6],
+    ["Nikon", "AF-S DX VR Zoom-NIKKOR 55-200mm f/4-5.6G IF-ED", 55, 200, 4, 5.6],
+  ],
   L: [
     ["Panasonic", "Lumix S PRO 24-70mm F2.8", 24, 70, 2.8],
     ["Panasonic", "Lumix S PRO 70-200mm F2.8 O.I.S.", 70, 200, 2.8],
@@ -342,7 +347,7 @@ export function logProfilesFor(cam: Camera | undefined): LogProfile[] {
         ? [lp("C-Log3", 800), lp("C-Log2", 800)]
         : [lp("C-Log3", 800)];
     case "Nikon":
-      return cam.id === "nikon-zfc" ? [] : [lp("N-Log", 800)];
+      return ["nikon-zfc", "nikon-d5500"].includes(cam.id) ? [] : [lp("N-Log", 800)];
     case "DJI":
       if (cam.id === "dji-neo") return [];
       if (cam.id === "dji-mavic4pro" || cam.id === "dji-mavic3pro")

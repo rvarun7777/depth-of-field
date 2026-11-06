@@ -4,6 +4,22 @@ A web application that allows you to figure out the depth of field of a camera l
 
 Built with React, TypeScript, Vite, and Chakra UI.
 
+## Nikon D5500 travel kit
+
+This fork starts with the Nikon D5500 (APS-C/DX) and the AF-S DX NIKKOR
+18-55mm f/3.5-5.6G VR II selected, at 18mm and f/3.5. The lens menu also
+includes the original AF-S DX VR Zoom-NIKKOR 55-200mm f/4-5.6G IF-ED.
+Both are native Nikon F-mount lenses; they are kept separate from Z-mount lenses.
+The D5500 does not offer N-Log, so no N-Log option is shown for it.
+
+Selecting a lens limits focal length and maximum aperture to its modeled range.
+As with the other zooms in this simulator, maximum aperture between the two
+endpoints is linearly estimated, rather than an exact map of camera aperture steps.
+VR is part of the lens name, but its stabilization effect is not simulated.
+Other camera presets remain available for comparison.
+
+Based on [Jack Herrington's Depth Of Field Simulator](https://github.com/jherr/depth-of-field).
+
 ## Features
 
 - Live DoF diagram with a draggable subject
