@@ -20,13 +20,29 @@ Other camera presets remain available for comparison.
 
 Based on [Jack Herrington's Depth Of Field Simulator](https://github.com/jherr/depth-of-field).
 
+## Automatic D5500 photo settings
+
+Automatic adaptation starts enabled for the D5500 with a selected lens in Photo
+mode. Changing scene brightness, filter loss, zoom, or the coach goal updates
+aperture, shutter and ISO; changes to light color update the Auto WB preview.
+The initial ISO ceiling is 6400 and can be changed. Portraits prioritize the lens's
+widest aperture and at least 1/250 s (1/500 s for moving people); both-person photos
+prefer f/8, opening to f/5.6 in dim light if needed. Scenery prefers f/8 with a
+handheld shutter guideline, or allows up to 30 seconds when a tripod is selected.
+
+The recommendations respect ISO 100–25600 and 1/4000–30 s on the D5500. They
+account for lens maximum aperture and selected filters, but do not assume a VR
+benefit or analyze actual subject positions/highlights. Warnings explain when the
+exposure cannot be met within the selected limits. Manual exposure edits and
+loading a lesson pause automation. Other cameras and video modes suspend it.
+
 ## Guided photography lessons
 
 The collapsible **Learn with your camera** panel explains the current framing,
 estimated focus zone, exposure, and motion risks. Choose portraits, photos together,
 or scenery, then load a lesson to apply a D5500 + 18-55mm daylight setup. Each lesson
 suggests one experiment and explains the tradeoff. Loading a lesson replaces the
-current settings; choosing a goal alone only changes the advice.
+current settings; with automatic adaptation enabled, choosing a goal also updates exposure settings.
 
 The coach uses the calculated focus limits beyond the diagram's visible range.
 Shutter recommendations are starting points, not guarantees; VR and subject motion

@@ -127,3 +127,41 @@ test("photo coach loads valid lessons and explains live settings on mobile", asy
     await once(server, "exit").catch(() => undefined);
   }
 });
+
+
+test("automatic D5500 settings follow light and yield to manual edits", async () => {
+  const port = await getOpenPort();
+  const { server, appUrl } = await startVite(port);
+  let browser;
+  try {
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "en-US" });
+    await page.goto(appUrl, { waitUntil: "networkidle" });
+    const automatic = page.getByRole("checkbox", { name: "Automatically adapt settings to the light" });
+    assert.equal(await automatic.isChecked(), true);
+    const intensity = page.getByRole("slider", { name: "Light intensity", exact: true });
+    await intensity.focus(); await page.keyboard.press("Home");
+    const dimIso = Number(await page.getByRole("combobox", { name: "Photo ISO", exact: true }).inputValue());
+    await intensity.focus(); await page.keyboard.press("End");
+    await page.waitForFunction(dim => Number(document.querySelector<HTMLSelectElement>('[aria-label="Photo ISO"]')?.value) < dim, dimIso);
+    await page.getByLabel("What are you photographing?").selectOption("together");
+    await page.waitForFunction(() => document.querySelector('[role="slider"][aria-label="aperture"]')?.getAttribute('aria-valuenow') === '8');
+    const aperture = page.getByRole("slider", { name: "aperture", exact: true });
+    await aperture.focus(); await page.keyboard.press("Home");
+    assert.equal(await automatic.isChecked(), false);
+    const manualAperture = await aperture.getAttribute("aria-valuenow");
+    const manualIso = await page.getByRole("combobox", { name: "Photo ISO", exact: true }).inputValue();
+    await intensity.focus(); await page.keyboard.press("Home");
+    assert.equal(await aperture.getAttribute("aria-valuenow"), manualAperture);
+    assert.equal(await page.getByRole("combobox", { name: "Photo ISO", exact: true }).inputValue(), manualIso);
+    await page.getByText("Automatically adapt settings to the light", { exact: true }).click();
+    assert.equal(await automatic.isChecked(), true);
+    await page.getByRole("combobox", { name: "Camera", exact: true }).selectOption("sony-a6700");
+    assert.match(await page.getByRole("region", { name: "Automatic photo settings" }).innerText(), /Automatic settings are paused/);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  } finally {
+    await browser?.close();
+    server.kill();
+    await once(server, "exit").catch(() => undefined);
+  }
+});

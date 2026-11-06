@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Slider,
   SliderTrack,
@@ -35,6 +35,7 @@ import { DICT, LANGUAGES, fill, loadLang, saveLang, type Lang } from "./i18n";
 import PhotographyGraphic, { SUBJECTS } from "./PhotographyGraphic";
 import MonitorView from "./MonitorView";
 import PhotoCoach, { type Lesson } from "./PhotoCoach";
+import { recommendPhotoSettings, PHOTO_SHUTTERS } from "./photoSettings";
 import {
   SCENES,
   SHUTTER_SPEEDS,
@@ -200,6 +201,11 @@ function App() {
     useState(72);
   const [focalLengthInMillimeters, setFocalLengthInMillimeters] = useState(18);
   const [aperture, setAperture] = useState(3.5);
+  const [photoGoal, setPhotoGoal] = useState<Lesson>("portrait");
+  const [smartAuto, setSmartAuto] = useState(true);
+  const [tripod, setTripod] = useState(false);
+  const [moving, setMoving] = useState(false);
+  const [maxPhotoIso, setMaxPhotoIso] = useState(6400);
   const [subject, setSubject] = useState("Human");
   const [system, setSystem] = useState<(typeof SYSTEMS)[number]>("Metric");
   const [sensor, setSensor] = useState("APS-C");
@@ -388,6 +394,20 @@ const cropFactor = isCustomSensor
   const logProfile = logProfiles.find((p) => p.id === profileId);
   const isLog = !!logProfile;
   const minIso = logProfile ? logProfile.minIso : 100;
+  const autoAvailable = cameraId === "nikon-d5500" && !!lens && !isVideo;
+  const recommended = useMemo(() => recommendPhotoSettings({
+    ev: sceneEV, focal: focalLengthInMillimeters, widest: apertureMin,
+    goal: photoGoal, tripod, moving, maxIso: maxPhotoIso,
+  }), [sceneEV, focalLengthInMillimeters, apertureMin, photoGoal, tripod, moving, maxPhotoIso]);
+  useEffect(() => {
+    if (!smartAuto || !autoAvailable) return;
+    setAperture(recommended.aperture);
+    setShutterM(recommended.shutter);
+    setIso(recommended.iso);
+    setExpMode("M");
+    setProfileId("standard");
+    setWbMode("auto");
+  }, [smartAuto, autoAvailable, recommended, lightK]);
   const shutter = isVideo
     ? vShutter
     : expMode === "A"
@@ -403,6 +423,7 @@ const cropFactor = isCustomSensor
     isVideo && scene.palette.indoor && !isFlickerSafe(shutter, mainsHz);
   const ideal180 = shutter180(vSystem, fps);
   const autoExposeNow = () => {
+    setSmartAuto(false);
     // light available before any ND (CPL stays as chosen)
     const baseEV = scene.ev + lightBoost - (cplOn ? CPL_LOSS : 0);
     if (isVideo) {
@@ -443,6 +464,8 @@ const cropFactor = isCustomSensor
   };
 
   const loadLesson = (lesson: Lesson) => {
+    setSmartAuto(false);
+    setPhotoGoal(lesson);
     const settings = {
       portrait: { focal: 55, aperture: 5.6, distance: 2.5 },
       together: { focal: 35, aperture: 8, distance: 3 },
@@ -545,12 +568,29 @@ const cropFactor = isCustomSensor
         </Tooltip>
       </Flex>
 
+      <Box as="section" aria-label="Automatic photo settings" mx={{ base: 3, md: 6 }} mt={4} p={4} bg={cardBg} borderWidth="1px" borderColor={borderColor} rounded="xl" lang="en">
+        <Checkbox isChecked={smartAuto} onChange={e => setSmartAuto(e.target.checked)}>Automatically adapt settings to the light</Checkbox>
+        <Text fontSize="sm" mt={2}>D5500 photo recommendations for your selected lens and the goal below. Focal length and distance stay yours to choose. These are practical starting points, not a guarantee of perfect focus or exposure.</Text>
+        <Flex gap={4} mt={3} wrap="wrap" align="center">
+          <Checkbox isChecked={moving} isDisabled={photoGoal === "scenery"} onChange={e => setMoving(e.target.checked)}>People are walking or moving</Checkbox>
+          <Checkbox isChecked={tripod} isDisabled={photoGoal !== "scenery"} onChange={e => setTripod(e.target.checked)}>Tripod for stationary scenery</Checkbox>
+          <Box><Text as="label" htmlFor="max-photo-iso" fontSize="sm">ISO ceiling</Text><Select id="max-photo-iso" value={maxPhotoIso} onChange={e => setMaxPhotoIso(Number(e.target.value))} size="sm" bg={nativeSelectStyles.bg} color={nativeSelectStyles.color}>
+            {[1600, 3200, 6400, 12800, 25600].map(v => <option key={v} value={v}>{v}</option>)}
+          </Select></Box>
+        </Flex>
+        {autoAvailable ? <>
+          <Text mt={3} fontWeight="bold">{smartAuto ? "Auto settings" : "Suggested settings"}: f/{recommended.aperture} · {formatShutter(recommended.shutter)} · ISO {recommended.iso} · Auto WB</Text>
+          <Text fontSize="sm" mt={1}>{recommended.reason}</Text>
+          {recommended.warnings.map(w => <Text key={w} mt={2} fontSize="sm" fontWeight="semibold">{w}</Text>)}
+          <Text fontSize="sm" mt={2}>Updates with scene, light intensity, filters, zoom, and goal. Color temperature updates Auto WB; it does not itself change brightness. Manual exposure edits pause automation. On the real D5500, use these as starting values and check the meter, histogram, and faces.</Text>
+        </> : <Text mt={3}>Automatic settings are paused. Select the D5500, one of its lenses, and Photo mode to use these camera-specific recommendations.</Text>}
+      </Box>
       <PhotoCoach focal={focalLengthInMillimeters} aperture={aperture}
         distanceMM={distanceToSubjectInMM} nearMM={depthOfFieldNearLimitInMM}
         farMM={depthOfFieldFarLimitInMM} shutter={shutter} iso={effIso}
         exposureDelta={exposureDelta} crop={cropFactor} lensName={lens?.name}
         apertureMin={apertureMin} video={isVideo} imperial={system === "Imperial"}
-        onLesson={loadLesson} />
+        onLesson={loadLesson} goal={photoGoal} onGoal={setPhotoGoal} />
       <Flex direction={{ base: "column", lg: "row" }} align="flex-start">
       <Box flex="1" minW={0} w="100%">
       <Box p={2} pt={4}>
@@ -869,7 +909,7 @@ const cropFactor = isCustomSensor
                 aria-label="aperture"
                 colorScheme="blue"
                 value={aperture}
-                onChange={(val: number) => setAperture(val)}
+                onChange={(val: number) => { setSmartAuto(false); setAperture(val); }}
                 isDisabled={!!lens?.fixedAperture}
                 min={apertureMin}
                 max={22}
@@ -1191,7 +1231,7 @@ const cropFactor = isCustomSensor
                     }}
                     bg={nativeSelectStyles.bg} color={nativeSelectStyles.color} borderColor={nativeSelectStyles.borderColor} iconColor={nativeSelectStyles.iconColor} sx={nativeSelectStyles.sx}>
                     <option value="auto">{t.isoAuto}</option>
-                    {[...new Set([minIso, ...ISOS.filter((v) => v >= minIso)])].map((v) => (
+                    {[...new Set([minIso, iso, ...ISOS.filter((v) => v >= minIso)])].sort((a, b) => a - b).map((v) => (
                       <option key={v} value={String(v)}>{v}</option>
                     ))}
                   </Select>
@@ -1203,7 +1243,7 @@ const cropFactor = isCustomSensor
             </>
           ) : (
           <>
-          <RadioGroup value={expMode} onChange={(v) => setExpMode(v as "M" | "A")}>
+          <RadioGroup value={expMode} onChange={(v) => { setSmartAuto(false); setExpMode(v as "M" | "A"); }}>
             <Stack direction="row" spacing={4}>
               <Radio value="M" size="sm">{t.modeM}</Radio>
               <Radio value="A" size="sm">{t.modeA}</Radio>
@@ -1213,9 +1253,9 @@ const cropFactor = isCustomSensor
             <Box>
               <Text fontSize="xs" color={mutedText}>{t.shutter}</Text>
               {expMode === "M" ? (
-                <Select size="sm" value={String(shutterM)} onChange={(e) => setShutterM(Number(e.target.value))}
+                <Select size="sm" aria-label="Photo shutter speed" value={String(shutterM)} onChange={(e) => { setSmartAuto(false); setShutterM(Number(e.target.value)); }}
                   bg={nativeSelectStyles.bg} color={nativeSelectStyles.color} borderColor={nativeSelectStyles.borderColor} iconColor={nativeSelectStyles.iconColor} sx={nativeSelectStyles.sx}>
-                  {SHUTTER_SPEEDS.map((v) => (
+                  {(cameraId === "nikon-d5500" ? PHOTO_SHUTTERS : SHUTTER_SPEEDS).map((v) => (
                     <option key={v} value={String(v)}>{formatShutter(v)}</option>
                   ))}
                 </Select>
@@ -1225,9 +1265,9 @@ const cropFactor = isCustomSensor
             </Box>
             <Box>
               <Text fontSize="xs" color={mutedText}>ISO</Text>
-              <Select size="sm" value={String(Math.max(iso, minIso))} onChange={(e) => setIso(Number(e.target.value))}
+              <Select size="sm" aria-label="Photo ISO" value={String(Math.max(iso, minIso))} onChange={(e) => { setSmartAuto(false); setIso(Number(e.target.value)); }}
                 bg={nativeSelectStyles.bg} color={nativeSelectStyles.color} borderColor={nativeSelectStyles.borderColor} iconColor={nativeSelectStyles.iconColor} sx={nativeSelectStyles.sx}>
-                {[...new Set([minIso, ...ISOS.filter((v) => v >= minIso)])].map((v) => (
+                {[...new Set([minIso, iso, ...ISOS.filter((v) => v >= minIso)])].sort((a, b) => a - b).map((v) => (
                   <option key={v} value={String(v)}>{v}</option>
                 ))}
               </Select>
@@ -1250,7 +1290,7 @@ const cropFactor = isCustomSensor
             </>
           )}
           <Text fontSize="xs" color={mutedText} mt={2}>{t.wb}</Text>
-          <Select size="sm" value={wbMode} onChange={(e) => setWbMode(e.target.value as WbMode)}
+          <Select size="sm" value={wbMode} onChange={(e) => { setSmartAuto(false); setWbMode(e.target.value as WbMode); }}
             bg={nativeSelectStyles.bg} color={nativeSelectStyles.color} borderColor={nativeSelectStyles.borderColor} iconColor={nativeSelectStyles.iconColor} sx={nativeSelectStyles.sx}>
             {WB_MODES.map((m) => (
               <option key={m} value={m}>{t.wbModes[m]}</option>

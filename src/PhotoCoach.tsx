@@ -8,6 +8,7 @@ type Props = {
   shutter: number; iso: number; exposureDelta: number; crop: number;
   lensName?: string; apertureMin: number; video: boolean; imperial: boolean;
   onLesson: (lesson: Lesson) => void;
+  goal: Lesson; onGoal: (goal: Lesson) => void;
 };
 const GOALS = {
   portrait: { label: "Portrait of my wife", advice: "Focus on the nearer eye. Put your subject farther from the background for more separation. Start near 1/250 s for a posed person; movement may need 1/500 s or faster.", exercise: "Change f/5.6 to f/8. Watch the sharp zone grow and the preview darken if shutter and ISO stay fixed. Then restore exposure using shutter or ISO." },
@@ -17,7 +18,7 @@ const GOALS = {
 
 export default function PhotoCoach(p: Props) {
   const [open, setOpen] = useState(true);
-  const [goal, setGoal] = useState<Lesson>("portrait");
+  const goal = p.goal;
   const bg = useColorModeValue("blue.50", "gray.800");
   const border = useColorModeValue("blue.200", "blue.600");
   const card = useColorModeValue("white", "gray.700");
@@ -33,7 +34,7 @@ export default function PhotoCoach(p: Props) {
     </Flex>
     <Collapse in={open} animateOpacity><Box id="photo-coach-content" pt={4}>
       <Text as="label" htmlFor="photo-goal" fontWeight="semibold">What are you photographing?</Text>
-      <Select id="photo-goal" value={goal} onChange={e => setGoal(e.target.value as Lesson)} bg={card} mt={2} maxW="400px">
+      <Select id="photo-goal" value={goal} onChange={e => p.onGoal(e.target.value as Lesson)} bg={card} mt={2} maxW="400px">
         {Object.entries(GOALS).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}
       </Select>
       <Text mt={3}>{GOALS[goal].advice}</Text>
@@ -52,7 +53,7 @@ export default function PhotoCoach(p: Props) {
       <Box mt={4}><Heading as="h3" size="sm">Try it on your D5500</Heading>
         <Text mt={2}>{GOALS[goal].exercise}</Text>
         <Button mt={3} colorScheme="blue" whiteSpace="normal" height="auto" py={2} onClick={() => p.onLesson(goal)}>Load {GOALS[goal].label.toLowerCase()} lesson</Button>
-        <Text fontSize="sm" mt={2}>Loads your D5500 and 18–55mm lens, a daylight scene, and manual photo settings. It replaces the current setup. Match these settings on your camera, then check the result.</Text>
+        <Text fontSize="sm" mt={2}>Loads your D5500 and 18–55mm lens, a daylight scene, and manual photo settings. It replaces the current setup and pauses automatic settings so you can experiment. Match these settings on your camera, then check the result.</Text>
       </Box>
       <Text fontSize="sm" mt={4}>For Lightroom: shoot RAW and protect important highlights. Editing can improve tone and color, but it cannot reliably repair missed focus or motion blur. The preview is illustrative; zoom aperture limits are estimated, and real bokeh, autofocus, and VR are not simulated. Coaching is currently in English.</Text>
     </Box></Collapse>

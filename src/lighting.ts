@@ -176,7 +176,7 @@ export type WbMode = (typeof WB_MODES)[number];
 export function formatShutter(t: number) {
   if (t >= 1) return `${Math.round(t * 10) / 10}"`;
   const d = 1 / t;
-  const nice = d >= 100 ? Math.round(d / 10) * 10 : Math.round(d);
+  const nice = Number(d.toFixed(1));
   return `1/${nice}`;
 }
 
