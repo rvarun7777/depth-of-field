@@ -34,6 +34,7 @@ import { DICT, LANGUAGES, fill, loadLang, saveLang, type Lang } from "./i18n";
 
 import PhotographyGraphic, { SUBJECTS } from "./PhotographyGraphic";
 import MonitorView from "./MonitorView";
+import PhotoCoach, { type Lesson } from "./PhotoCoach";
 import {
   SCENES,
   SHUTTER_SPEEDS,
@@ -441,6 +442,31 @@ const cropFactor = isCustomSensor
     setLightBoost(0);
   };
 
+  const loadLesson = (lesson: Lesson) => {
+    const settings = {
+      portrait: { focal: 55, aperture: 5.6, distance: 2.5 },
+      together: { focal: 35, aperture: 8, distance: 3 },
+      scenery: { focal: 18, aperture: 8, distance: 5 },
+    }[lesson];
+    setCameraId("nikon-d5500");
+    setLensId("F-DX:Nikon:AF-S DX NIKKOR 18-55mm f/3.5-5.6G VR II");
+    setSensor("APS-C");
+    setSubject("Human");
+    setFocalLengthInMillimeters(settings.focal);
+    setAperture(settings.aperture);
+    setDistanceToSubjectInInches(settings.distance / 0.0254);
+    setShootMode("photo");
+    setExpMode("M");
+    setIso(100);
+    selectScene("spring");
+    setShutterM(nearestShutter(correctShutter(SCENES.find(s => s.id === "spring")!.ev, settings.aperture, 100)));
+    setNdId("none");
+    setCplOn(false);
+    setUvOn(false);
+    setProfileId("standard");
+    setWbMode("auto");
+  };
+
   // ── Theme-aware colors 
   const cardBg = useColorModeValue("white", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -519,6 +545,12 @@ const cropFactor = isCustomSensor
         </Tooltip>
       </Flex>
 
+      <PhotoCoach focal={focalLengthInMillimeters} aperture={aperture}
+        distanceMM={distanceToSubjectInMM} nearMM={depthOfFieldNearLimitInMM}
+        farMM={depthOfFieldFarLimitInMM} shutter={shutter} iso={effIso}
+        exposureDelta={exposureDelta} crop={cropFactor} lensName={lens?.name}
+        apertureMin={apertureMin} video={isVideo} imperial={system === "Imperial"}
+        onLesson={loadLesson} />
       <Flex direction={{ base: "column", lg: "row" }} align="flex-start">
       <Box flex="1" minW={0} w="100%">
       <Box p={2} pt={4}>

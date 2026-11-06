@@ -20,6 +20,18 @@ Other camera presets remain available for comparison.
 
 Based on [Jack Herrington's Depth Of Field Simulator](https://github.com/jherr/depth-of-field).
 
+## Guided photography lessons
+
+The collapsible **Learn with your camera** panel explains the current framing,
+estimated focus zone, exposure, and motion risks. Choose portraits, photos together,
+or scenery, then load a lesson to apply a D5500 + 18-55mm daylight setup. Each lesson
+suggests one experiment and explains the tradeoff. Loading a lesson replaces the
+current settings; choosing a goal alone only changes the advice.
+
+The coach uses the calculated focus limits beyond the diagram's visible range.
+Shutter recommendations are starting points, not guarantees; VR and subject motion
+are not physically simulated. Coaching is currently in English.
+
 ## Features
 
 - Live DoF diagram with a draggable subject

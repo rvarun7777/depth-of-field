@@ -86,3 +86,44 @@ test("sensor select has enough visible width on narrow mobile screens", async ()
     await once(server, "exit").catch(() => undefined);
   }
 });
+
+
+test("photo coach loads valid lessons and explains live settings on mobile", async () => {
+  const port = await getOpenPort();
+  const { server, appUrl } = await startVite(port);
+  let browser;
+  try {
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "en-US" });
+    await page.goto(appUrl, { waitUntil: "networkidle" });
+    const coach = page.getByRole("region", { name: "Photography coach" });
+    const goal = page.getByLabel("What are you photographing?");
+    for (const [value, label, focal, aperture] of [
+      ["portrait", "portrait of my wife", "55", "5.6"],
+      ["together", "both of us in focus", "35", "8"],
+      ["scenery", "scenery and buildings", "18", "8"],
+    ]) {
+      await goal.selectOption(value);
+      await coach.getByRole("button", { name: `Load ${label} lesson` }).click();
+      assert.equal(await page.getByRole("combobox", { name: "Camera", exact: true }).inputValue(), "nikon-d5500");
+      assert.match(await page.getByRole("combobox", { name: "Lens", exact: true }).inputValue(), /18-55mm/);
+      assert.equal(await page.getByRole("slider", { name: "focal length", exact: true }).getAttribute("aria-valuenow"), focal);
+      assert.equal(await page.getByRole("slider", { name: "aperture", exact: true }).getAttribute("aria-valuenow"), aperture);
+      assert.match(await coach.innerText(), /Close to the simulator/);
+    }
+    const apertureSlider = page.getByRole("slider", { name: "aperture", exact: true });
+    await apertureSlider.focus();
+    await page.keyboard.press("Home");
+    assert.match(await coach.innerText(), /brighter than the simulator/);
+    await page.getByRole("button", { name: "Toggle color mode" }).click();
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await coach.getByRole("button", { name: "Hide tips" }).click();
+    assert.equal(await coach.getByRole("button", { name: "Show tips" }).getAttribute("aria-expanded"), "false");
+    await coach.getByRole("button", { name: "Show tips" }).click();
+    assert.equal(await coach.getByRole("button", { name: "Hide tips" }).getAttribute("aria-expanded"), "true");
+  } finally {
+    await browser?.close();
+    server.kill();
+    await once(server, "exit").catch(() => undefined);
+  }
+});
