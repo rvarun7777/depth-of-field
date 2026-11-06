@@ -4,7 +4,6 @@ import {
   SliderTrack,
   SliderFilledTrack,
   SliderThumb,
-  SliderMark,
   Box,
   Flex,
   Text,
@@ -34,6 +33,7 @@ import { DICT, LANGUAGES, fill, loadLang, saveLang, type Lang } from "./i18n";
 
 import PhotographyGraphic, { SUBJECTS } from "./PhotographyGraphic";
 import MonitorView from "./MonitorView";
+import AxisScale from "./AxisScale";
 import PhotoCoach, { type Lesson } from "./PhotoCoach";
 import { recommendPhotoSettings, PHOTO_SHUTTERS } from "./photoSettings";
 import {
@@ -498,12 +498,6 @@ const cropFactor = isCustomSensor
   const graphicTextColor = useColorModeValue("#1A202C", "#F7FAFC");
   const nativeSelectStyles = buildNativeSelectStyles(colorMode);
 
-  const labelStyles = {
-    mt: "2",
-    ml: "-2.5",
-    fontSize: "sm",
-  };
-
   const distanceMarks = useMemo(() => {
     if (system === "Imperial") {
       return new Array(Math.floor(farDistanceInInches / 24) + 1)
@@ -569,6 +563,7 @@ const cropFactor = isCustomSensor
       </Flex>
 
       <Box as="section" aria-label="Automatic photo settings" mx={{ base: 3, md: 6 }} mt={4} p={4} bg={cardBg} borderWidth="1px" borderColor={borderColor} rounded="xl" lang="en">
+        <Text fontWeight="bold" mb={2}>{camera ? `${camera.brand} ${camera.model}` : "Manual camera setup"}{lens ? ` · ${lens.minFocal}–${lens.maxFocal}mm` : ""}</Text>
         <Checkbox isChecked={smartAuto} onChange={e => setSmartAuto(e.target.checked)}>Automatically adapt settings to the light</Checkbox>
         <Box mt={3}>
           <Text as="label" htmlFor="photo-goal" fontSize="sm" fontWeight="semibold">What are you photographing?</Text>
@@ -607,7 +602,9 @@ const cropFactor = isCustomSensor
       </Flex>
       <Flex direction={{ base: "column", lg: "row" }} align="flex-start">
       <Box id="camera-controls" flex="1" minW={0} w="100%">
-      <Box p={2} pt={4}>
+      <Text fontSize="sm" px={3} pt={3}>Focus diagram — swipe or scroll sideways to see the full distance range.</Text>
+      <Box p={2} pt={4} overflowX="auto" tabIndex={0} aria-label="Focus diagram; scroll horizontally for the full scene">
+        <Box minW="760px">
         <PhotographyGraphic
           distanceToSubjectInInches={distanceToSubjectInInches}
           nearFocalPointInInches={nearFocalPointInInches}
@@ -621,6 +618,7 @@ const cropFactor = isCustomSensor
           textColor={graphicTextColor}
           onChangeDistance={(val) => setDistanceToSubjectInInches(val)}
         />
+        </Box>
       </Box>
 
       {/* ── DoF Stats Panel ── */}
@@ -812,16 +810,16 @@ const cropFactor = isCustomSensor
 
         {/* Subject Distance */}
         <Box pt={6}>
-          <Flex gap={2} align="center">
-            <Flex w="20%" justify="flex-end" align="center" gap={1.5} direction="column">
+          <Flex gap={3} align="stretch" direction={{ base: "column", md: "row" }}>
+            <Flex w={{ base: "100%", md: "24%" }} flexShrink={0} justify="space-between" align="center" gap={1.5} direction={{ base: "row", md: "column" }}>
               <Flex align="center" gap={1.5}>
                 <Icon as={TbRuler} boxSize={4} color={mutedText} />
                 <Text fontSize="sm" textAlign="right">
                   {t.distance} ({system === "Imperial" ? "ft" : "m"})
                 </Text>
               </Flex>
-              <Text display={{ base: "block", xl: "none" }} fontSize="xs" color={mutedText}>
-                {convertUnits(distanceToSubjectInInches, 1)}
+              <Text fontSize="md" fontWeight="bold" color={graphicTextColor}>
+                {system === "Imperial" ? `${(distanceToSubjectInInches / 12).toFixed(1)} ft` : `${(distanceToSubjectInInches * 0.0254).toFixed(2)} m`}
               </Text>
             </Flex>
             <Box flexGrow={1} minW={0}>
@@ -834,31 +832,28 @@ const cropFactor = isCustomSensor
                 max={400}
                 step={1}
               >
-                {distanceMarks.map(({ label, value }) => (
-                  <SliderMark key={value} value={value} {...labelStyles}>
-                    {label}
-                  </SliderMark>
-                ))}
+
                 <SliderTrack>
                   <SliderFilledTrack />
                 </SliderTrack>
                 <SliderThumb />
               </Slider>
+              <AxisScale min={10} max={400} marks={[{ value: 10, label: system === "Imperial" ? "0.8 ft" : "0.25 m" }, ...distanceMarks, { value: 400, label: system === "Imperial" ? "33.3 ft" : "10.16 m" }]} label="Distance scale" />
             </Box>
           </Flex>
         </Box>
 
         {/* Focal Length */}
         <Box pt={6}>
-          <Flex gap={2} align="center">
-            <Flex w="20%" justify="flex-end" align="center" gap={1.5} direction="column">
+          <Flex gap={3} align="stretch" direction={{ base: "column", md: "row" }}>
+            <Flex w={{ base: "100%", md: "24%" }} flexShrink={0} justify="space-between" align="center" gap={1.5} direction={{ base: "row", md: "column" }}>
               <Flex align="center" gap={1.5}>
                 <Icon as={TbZoomIn} boxSize={4} color={mutedText} />
                 <Text fontSize="sm" textAlign="right">
                   {t.focalLength} (mm)
                 </Text>
               </Flex>
-              <Text display={{ base: "block", xl: "none" }} fontSize="xs" color={mutedText}>
+              <Text fontSize="md" fontWeight="bold" color={graphicTextColor}>
                 {Math.round(focalLengthInMillimeters)} mm
               </Text>
             </Flex>
@@ -873,17 +868,13 @@ const cropFactor = isCustomSensor
                 isDisabled={isPrime}
                 step={1}
               >
-                {focalMarks
-                  .map((val) => (
-                  <SliderMark key={val} value={val} {...labelStyles}>
-                    {val}
-                  </SliderMark>
-                ))}
+
                 <SliderTrack>
                   <SliderFilledTrack />
                 </SliderTrack>
                 <SliderThumb />
               </Slider>
+              <AxisScale min={focalMin} max={focalMax} marks={[...new Set([focalMin, ...focalMarks, focalMax])].map(value => ({ value, label: `${value} mm` }))} label="Focal length scale" />
             </Box>
           </Flex>
           <Flex gap={2} mt={2}>
@@ -908,13 +899,13 @@ const cropFactor = isCustomSensor
 
         {/* Aperture */}
         <Box pt={6}>
-          <Flex gap={2} align="center">
-            <Flex w="20%" justify="flex-end" align="center" gap={1.5} direction="column">
+          <Flex gap={3} align="stretch" direction={{ base: "column", md: "row" }}>
+            <Flex w={{ base: "100%", md: "24%" }} flexShrink={0} justify="space-between" align="center" gap={1.5} direction={{ base: "row", md: "column" }}>
               <Flex align="center" gap={1.5}>
                 <Icon as={TbAperture} boxSize={4} color={mutedText} />
                 <Text fontSize="sm">{t.aperture}</Text>
               </Flex>
-              <Text display={{ base: "block", xl: "none" }} fontSize="xs" color={mutedText}>
+              <Text fontSize="md" fontWeight="bold" color={graphicTextColor}>
                 f/{aperture.toFixed(1)}
               </Text>
             </Flex>
@@ -929,16 +920,13 @@ const cropFactor = isCustomSensor
                 max={22}
                 step={0.1}
               >
-                {[0.8, 1.4, 1.8, 2.8, 4, 5.6, 8, 11, 16, 22].filter((v) => v >= apertureMin).map((val) => (
-                  <SliderMark key={val} value={val} {...labelStyles}>
-                    {val}
-                  </SliderMark>
-                ))}
+
                 <SliderTrack>
                   <SliderFilledTrack />
                 </SliderTrack>
                 <SliderThumb />
               </Slider>
+              <AxisScale min={apertureMin} max={22} marks={[...new Set([apertureMin, 4, 5.6, 8, 11, 16, 22])].map(value => ({ value, label: `f/${value}` }))} label="Aperture scale" />
             </Box>
           </Flex>
           {hasDiffractionRisk && (

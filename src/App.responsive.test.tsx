@@ -78,7 +78,17 @@ test("phone layouts fit the viewport with touch controls and collapsed tips", as
 
     for (const screenWidth of [320, 360, 390, 430, 768, 1280]) {
       await page.setViewportSize({ width: screenWidth, height: 844 });
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `no horizontal overflow at ${screenWidth}px`);
+      assert.equal(await page.getByRole("combobox", { name: "Camera", exact: true }).inputValue(), "nikon-d5500");
+      for (const name of ["Distance scale", "Focal length scale", "Aperture scale"]) {
+        const labels = await page.getByLabel(name, { exact: true }).locator("p").evaluateAll(nodes => nodes.map(e => ({ left: e.getBoundingClientRect().left, right: e.getBoundingClientRect().right, font: parseFloat(getComputedStyle(e).fontSize) })));
+        assert.ok(labels.length >= 2);
+        labels.forEach((label, i) => {
+          assert.ok(label.font >= 14, `${name} font ${label.font} at ${screenWidth}px`);
+          if (i) assert.ok(label.left >= labels[i - 1].right, `${name} labels must not overlap at ${screenWidth}px`);
+        });
+      }
       const tips = page.getByRole("button", { name: "Show tips" });
       assert.equal(await tips.getAttribute("aria-expanded"), "false");
       if (screenWidth < 768) {

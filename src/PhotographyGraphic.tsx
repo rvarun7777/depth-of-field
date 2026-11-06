@@ -192,7 +192,7 @@ export default function PhotographyGraphic({
       <>
         <text
           fill={fill}
-          fontSize={3}
+          fontSize={7}
           textAnchor="start"
           transform={`translate(${nearFocalPointInInches - 0.5} ${
             height - 1
@@ -202,7 +202,7 @@ export default function PhotographyGraphic({
         </text>
         <text
           fill={fill}
-          fontSize={3}
+          fontSize={7}
           textAnchor="start"
           transform={`translate(${farFocalPointInInches + 0.5} 1) rotate(90)`}
         >
@@ -227,7 +227,7 @@ export default function PhotographyGraphic({
       onMouseUp={onMouseUp}
       onMouseMove={onMouseMove}
       xmlns="http://www.w3.org/2000/svg"
-      viewBox={`-43.5 0 ${farDistanceInInches} ${height + 12}`}
+      viewBox={`-43.5 0 ${farDistanceInInches + 55} ${height + 28}`}
       style={{ width: "100%", height: "auto", color: textColor }}
     >
       <defs>
@@ -266,36 +266,36 @@ export default function PhotographyGraphic({
 
       <line
         x1={nearFocalPointInInches}
-        y1={height + 7}
+        y1={height + 13}
         x2={nearFocalPointInInches}
-        y2={height + 9}
-        stroke="#aaa"
-        strokeWidth={0.2}
+        y2={height + 17}
+        stroke={textFill}
+        strokeWidth={0.5}
       />
       <line
         x1={farFocalPointInInches}
-        y1={height + 7}
+        y1={height + 13}
         x2={farFocalPointInInches}
-        y2={height + 9}
-        stroke="#aaa"
-        strokeWidth={0.2}
+        y2={height + 17}
+        stroke={textFill}
+        strokeWidth={0.5}
       />
       <line
         x1={nearFocalPointInInches}
-        y1={height + 8}
+        y1={height + 15}
         x2={farFocalPointInInches}
-        y2={height + 8}
-        stroke="#aaa"
-        strokeWidth={0.2}
+        y2={height + 15}
+        stroke={textFill}
+        strokeWidth={0.5}
       />
       <text
         x={
           nearFocalPointInInches +
           (farFocalPointInInches - nearFocalPointInInches) / 2
         }
-        y={height + 10.7}
+        y={height + 25}
         fill={textFill}
-        fontSize={3}
+        fontSize={7}
         textAnchor="middle"
       >
         {convertUnits(farFocalPointInInches - nearFocalPointInInches)}
@@ -305,7 +305,7 @@ export default function PhotographyGraphic({
         x={-1}
         y={5}
         fill={textFill}
-        fontSize={4}
+        fontSize={7}
         fontWeight="bold"
         textAnchor="end"
       >
@@ -315,9 +315,9 @@ export default function PhotographyGraphic({
       {shouldShowVerticalLabels && renderVerticalDistanceLabels(textFill)}
       <text
         x={distanceToSubjectInInches}
-        y={height + 3.5}
+        y={height + 8}
         fill={textFill}
-        fontSize={3}
+        fontSize={7}
         textAnchor="middle"
       >
         {convertUnits(distanceToSubjectInInches, 0)}
@@ -344,8 +344,8 @@ export default function PhotographyGraphic({
         y1={0}
         x2={distanceToSubjectInInches}
         y2={height}
-        stroke="#aaa"
-        strokeWidth={0.2}
+        stroke={textFill}
+        strokeWidth={0.5}
       />
 
       <rect
