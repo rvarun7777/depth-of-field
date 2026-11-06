@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Collapse, Flex, Heading, Select, SimpleGrid, Text, useColorModeValue } from "@chakra-ui/react";
+import { Box, Button, Collapse, Flex, Heading, SimpleGrid, Text, useColorModeValue } from "@chakra-ui/react";
 import { formatShutter } from "./lighting";
 
 export type Lesson = "portrait" | "together" | "scenery";
@@ -8,7 +8,7 @@ type Props = {
   shutter: number; iso: number; exposureDelta: number; crop: number;
   lensName?: string; apertureMin: number; video: boolean; imperial: boolean;
   onLesson: (lesson: Lesson) => void;
-  goal: Lesson; onGoal: (goal: Lesson) => void;
+  goal: Lesson;
 };
 const GOALS = {
   portrait: { label: "Portrait of my wife", advice: "Focus on the nearer eye. Put your subject farther from the background for more separation. Start near 1/250 s for a posed person; movement may need 1/500 s or faster.", exercise: "Change f/5.6 to f/8. Watch the sharp zone grow and the preview darken if shutter and ISO stay fixed. Then restore exposure using shutter or ISO." },
@@ -17,7 +17,7 @@ const GOALS = {
 };
 
 export default function PhotoCoach(p: Props) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const goal = p.goal;
   const bg = useColorModeValue("blue.50", "gray.800");
   const border = useColorModeValue("blue.200", "blue.600");
@@ -28,15 +28,11 @@ export default function PhotoCoach(p: Props) {
   const shake = p.shutter > 1 / (p.focal * p.crop);
   const exposure = Math.abs(p.exposureDelta) < 0.5 ? "Close to the simulator’s target exposure." : `${Math.abs(p.exposureDelta).toFixed(1)} stops ${p.exposureDelta > 0 ? "brighter" : "darker"} than the simulator’s target. ${p.exposureDelta > 0 ? "Try a faster shutter, lower ISO, or higher f-number." : "Try raising ISO, a lower f-number if available, or a slower shutter when your subject is still."}`;
   return <Box as="section" aria-label="Photography coach" lang="en" m={{ base: 3, md: 6 }} p={{ base: 4, md: 5 }} bg={bg} borderWidth="1px" borderColor={border} rounded="xl">
-    <Flex justify="space-between" align="center" gap={3}>
+    <Flex justify="space-between" align={{ base: "flex-start", sm: "center" }} gap={3} wrap="wrap">
       <Box><Heading as="h2" size="md">Learn with your camera</Heading><Text fontSize="sm" mt={1}>Understand the settings, then try one change at a time.</Text></Box>
       <Button size="sm" flexShrink={0} onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="photo-coach-content">{open ? "Hide tips" : "Show tips"}</Button>
     </Flex>
     <Collapse in={open} animateOpacity><Box id="photo-coach-content" pt={4}>
-      <Text as="label" htmlFor="photo-goal" fontWeight="semibold">What are you photographing?</Text>
-      <Select id="photo-goal" value={goal} onChange={e => p.onGoal(e.target.value as Lesson)} bg={card} mt={2} maxW="400px">
-        {Object.entries(GOALS).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}
-      </Select>
       <Text mt={3}>{GOALS[goal].advice}</Text>
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3} mt={4}>
         <Box bg={card} p={4} rounded="lg"><Heading as="h3" size="sm">Framing and focus</Heading>

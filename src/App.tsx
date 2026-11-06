@@ -570,7 +570,12 @@ const cropFactor = isCustomSensor
 
       <Box as="section" aria-label="Automatic photo settings" mx={{ base: 3, md: 6 }} mt={4} p={4} bg={cardBg} borderWidth="1px" borderColor={borderColor} rounded="xl" lang="en">
         <Checkbox isChecked={smartAuto} onChange={e => setSmartAuto(e.target.checked)}>Automatically adapt settings to the light</Checkbox>
-        <Text fontSize="sm" mt={2}>D5500 photo recommendations for your selected lens and the goal below. Focal length and distance stay yours to choose. These are practical starting points, not a guarantee of perfect focus or exposure.</Text>
+        <Box mt={3}>
+          <Text as="label" htmlFor="photo-goal" fontSize="sm" fontWeight="semibold">What are you photographing?</Text>
+          <Select id="photo-goal" value={photoGoal} onChange={e => setPhotoGoal(e.target.value as Lesson)} mt={1} bg={nativeSelectStyles.bg} color={nativeSelectStyles.color}>
+            <option value="portrait">Portrait of my wife</option><option value="together">Both of us in focus</option><option value="scenery">Scenery and buildings</option>
+          </Select>
+        </Box>
         <Flex gap={4} mt={3} wrap="wrap" align="center">
           <Checkbox isChecked={moving} isDisabled={photoGoal === "scenery"} onChange={e => setMoving(e.target.checked)}>People are walking or moving</Checkbox>
           <Checkbox isChecked={tripod} isDisabled={photoGoal !== "scenery"} onChange={e => setTripod(e.target.checked)}>Tripod for stationary scenery</Checkbox>
@@ -580,9 +585,13 @@ const cropFactor = isCustomSensor
         </Flex>
         {autoAvailable ? <>
           <Text mt={3} fontWeight="bold">{smartAuto ? "Auto settings" : "Suggested settings"}: f/{recommended.aperture} · {formatShutter(recommended.shutter)} · ISO {recommended.iso} · Auto WB</Text>
+          <Box as="details" mt={2}><Box as="summary" cursor="pointer" fontSize="sm" py={2}>Why these settings?</Box>
           <Text fontSize="sm" mt={1}>{recommended.reason}</Text>
-          {recommended.warnings.map(w => <Text key={w} mt={2} fontSize="sm" fontWeight="semibold">{w}</Text>)}
+          <Text fontSize="sm" mt={2}>Practical starting points for your D5500, not a guarantee of perfect focus or exposure. Focal length and distance stay yours to choose.</Text>
+
           <Text fontSize="sm" mt={2}>Updates with scene, light intensity, filters, zoom, and goal. Color temperature updates Auto WB; it does not itself change brightness. Manual exposure edits pause automation. On the real D5500, use these as starting values and check the meter, histogram, and faces.</Text>
+          </Box>
+          {recommended.warnings.map(w => <Text key={w} mt={2} fontSize="sm" fontWeight="semibold">{w}</Text>)}
         </> : <Text mt={3}>Automatic settings are paused. Select the D5500, one of its lenses, and Photo mode to use these camera-specific recommendations.</Text>}
       </Box>
       <PhotoCoach focal={focalLengthInMillimeters} aperture={aperture}
@@ -590,9 +599,14 @@ const cropFactor = isCustomSensor
         farMM={depthOfFieldFarLimitInMM} shutter={shutter} iso={effIso}
         exposureDelta={exposureDelta} crop={cropFactor} lensName={lens?.name}
         apertureMin={apertureMin} video={isVideo} imperial={system === "Imperial"}
-        onLesson={loadLesson} goal={photoGoal} onGoal={setPhotoGoal} />
+        onLesson={loadLesson} goal={photoGoal} />
+      <Flex as="nav" aria-label="Simulator sections" display={{ base: "flex", lg: "none" }} gap={2} px={3} pb={2} wrap="wrap">
+        <Button as="a" href="#camera-controls" size="sm">Camera &amp; lens</Button>
+        <Button as="a" href="#live-preview" size="sm">Preview</Button>
+        <Button as="a" href="#lighting-controls" size="sm">Lighting</Button>
+      </Flex>
       <Flex direction={{ base: "column", lg: "row" }} align="flex-start">
-      <Box flex="1" minW={0} w="100%">
+      <Box id="camera-controls" flex="1" minW={0} w="100%">
       <Box p={2} pt={4}>
         <PhotographyGraphic
           distanceToSubjectInInches={distanceToSubjectInInches}
@@ -610,8 +624,8 @@ const cropFactor = isCustomSensor
       </Box>
 
       {/* ── DoF Stats Panel ── */}
-      <Box px={6} pt={2}>
-        <SimpleGrid columns={4} spacing={3}>
+      <Box px={{ base: 3, md: 6 }} pt={2}>
+        <SimpleGrid columns={{ base: 2, md: 4 }} spacing={3}>
           {[
             {
               label: t.near,
@@ -699,7 +713,7 @@ const cropFactor = isCustomSensor
               <Icon as={TbRuler} boxSize={4} color={mutedText} />
               <Text fontSize="sm">{t.units}</Text>
             </Flex>
-            <Box flexGrow={1}>
+            <Box flexGrow={1} minW={0}>
               <RadioGroup
                 onChange={(v) => setSystem(v as "Imperial" | "Metric")}
                 value={system}
@@ -724,7 +738,7 @@ const cropFactor = isCustomSensor
                 <Icon as={FiCamera} boxSize={4} color={mutedText} />
                 <Text fontSize="sm" textAlign="right">{t.camera}</Text>
               </Flex>
-              <Box flexGrow={1}>
+              <Box flexGrow={1} minW={0}>
                 <Select
                   bg={nativeSelectStyles.bg}
                   color={nativeSelectStyles.color}
@@ -756,7 +770,7 @@ const cropFactor = isCustomSensor
                 <Icon as={TbAperture} boxSize={4} color={mutedText} />
                 <Text fontSize="sm" textAlign="right">{t.lens}</Text>
               </Flex>
-              <Box flexGrow={1}>
+              <Box flexGrow={1} minW={0}>
                 <Select
                   bg={nativeSelectStyles.bg}
                   color={nativeSelectStyles.color}
@@ -787,7 +801,7 @@ const cropFactor = isCustomSensor
           </Flex>
           {lens && (
             <Flex mt={2} justify="flex-start" pl={{ base: "80px", md: "calc(10% + 8px)" }}>
-              <Badge colorScheme="blue" variant="subtle" px={2} py={0.5} fontSize="xs" rounded="md" textTransform="none">
+              <Badge colorScheme="blue" variant="subtle" px={2} py={0.5} fontSize="xs" rounded="md" textTransform="none" whiteSpace="normal" overflowWrap="anywhere">
                 {lens.maker} · {isPrime ? `${lens.minFocal} mm` : `${lens.minFocal}–${lens.maxFocal} mm`} ·{" "}
                 {lens.apertureWide === lens.apertureTele ? `f/${lens.apertureWide}` : `f/${lens.apertureWide}–${lens.apertureTele}`}
                 {camera ? ` · ${camera.brand} ${camera.model}` : ""}
@@ -810,7 +824,7 @@ const cropFactor = isCustomSensor
                 {convertUnits(distanceToSubjectInInches, 1)}
               </Text>
             </Flex>
-            <Box flexGrow={1}>
+            <Box flexGrow={1} minW={0}>
               <Slider
                 aria-label="distance to subject"
                 colorScheme="blue"
@@ -848,7 +862,7 @@ const cropFactor = isCustomSensor
                 {Math.round(focalLengthInMillimeters)} mm
               </Text>
             </Flex>
-            <Box flexGrow={1}>
+            <Box flexGrow={1} minW={0}>
               <Slider
                 aria-label="focal length"
                 colorScheme="blue"
@@ -874,7 +888,7 @@ const cropFactor = isCustomSensor
           </Flex>
           <Flex gap={2} mt={2}>
             <Box w="20%"></Box>
-            <Box flexGrow={1}>
+            <Box flexGrow={1} minW={0}>
               <Flex justify="space-between" align="center">
                 <img src={Fisheye} alt="Fisheye lens" style={{ height: 50 }} />
                 {sensor !== "35mm (full frame)" && (
@@ -904,7 +918,7 @@ const cropFactor = isCustomSensor
                 f/{aperture.toFixed(1)}
               </Text>
             </Flex>
-            <Box flexGrow={1}>
+            <Box flexGrow={1} minW={0}>
               <Slider
                 aria-label="aperture"
                 colorScheme="blue"
@@ -981,7 +995,7 @@ const cropFactor = isCustomSensor
                   {t.sensor}
                 </Text>
               </Flex>
-              <Box flexGrow={1}>
+              <Box flexGrow={1} minW={0}>
                 <Select
                   bg={nativeSelectStyles.bg}
                   color={nativeSelectStyles.color}
@@ -1025,7 +1039,7 @@ const cropFactor = isCustomSensor
                   {t.subject}
                 </Text>
               </Flex>
-              <Box flexGrow={1}>
+              <Box flexGrow={1} minW={0}>
                 <Select
                   bg={nativeSelectStyles.bg}
                   color={nativeSelectStyles.color}
@@ -1112,9 +1126,10 @@ const cropFactor = isCustomSensor
       </Box>
       </Box>
       <Box
+        id="live-preview"
         w={{ base: "100%", lg: "420px" }}
         flexShrink={0}
-        px={{ base: 6, lg: 4 }}
+        px={{ base: 3, lg: 4 }}
         pt={{ base: 4, lg: 6 }}
         pb={4}
         position={{ base: "static", lg: "sticky" }}
@@ -1146,7 +1161,7 @@ const cropFactor = isCustomSensor
         />
 
         {/* Light & exposure controls */}
-        <Box mt={4} bg={cardBg} border="1px" borderColor={borderColor} rounded="lg" p={3}>
+        <Box id="lighting-controls" mt={4} bg={cardBg} border="1px" borderColor={borderColor} rounded="lg" p={3}>
           <Text fontSize="xs" fontWeight="semibold" color={mutedText} textTransform="uppercase" letterSpacing="wider" mb={2}>
             {t.light}
           </Text>

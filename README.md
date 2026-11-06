@@ -36,6 +36,13 @@ benefit or analyze actual subject positions/highlights. Warnings explain when th
 exposure cannot be met within the selected limits. Manual exposure edits and
 loading a lesson pause automation. Other cameras and video modes suspend it.
 
+## Phone layout
+
+Tips and the automatic-settings explanation start collapsed. The photo goal stays
+visible without opening tips. Phone layouts use 44px touch controls, 16px form text,
+a two-column focus-stat grid, wrapping lens summaries, and shortcuts to camera,
+preview, and lighting sections. Layout tests cover widths from 320px to 1280px.
+
 ## Guided photography lessons
 
 The collapsible **Learn with your camera** panel explains the current framing,

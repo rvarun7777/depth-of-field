@@ -59,12 +59,13 @@ async function startVite(port: number) {
   throw new Error(`Vite server did not start:\n${output}`);
 }
 
-test("sensor select has enough visible width on narrow mobile screens", async () => {
+test("phone layouts fit the viewport with touch controls and collapsed tips", async () => {
   const port = await getOpenPort();
   const { server, appUrl } = await startVite(port);
 
+  let browser;
   try {
-    const browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 
     await page.goto(appUrl, { waitUntil: "networkidle" });
@@ -75,6 +76,21 @@ test("sensor select has enough visible width on narrow mobile screens", async ()
       scroll: select.scrollWidth,
     }));
 
+    for (const screenWidth of [320, 360, 390, 430, 768, 1280]) {
+      await page.setViewportSize({ width: screenWidth, height: 844 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `no horizontal overflow at ${screenWidth}px`);
+      const tips = page.getByRole("button", { name: "Show tips" });
+      assert.equal(await tips.getAttribute("aria-expanded"), "false");
+      if (screenWidth < 768) {
+        assert.ok((await tips.boundingBox())!.height >= 44);
+        const goalSelect = page.getByLabel("What are you photographing?");
+        assert.ok((await goalSelect.boundingBox())!.height >= 44);
+        assert.equal(await goalSelect.evaluate(e => getComputedStyle(e).fontSize), "16px");
+        const cameraLink = page.getByRole("link", { name: "Camera & lens", exact: true });
+        await cameraLink.click();
+        assert.equal(new URL(page.url()).hash, "#camera-controls");
+      }
+    }
     await browser.close();
 
     assert.ok(
@@ -82,6 +98,7 @@ test("sensor select has enough visible width on narrow mobile screens", async ()
       `expected sensor select visible width ${width.client}px to fit ${width.scroll}px of content`
     );
   } finally {
+    await browser?.close();
     server.kill();
     await once(server, "exit").catch(() => undefined);
   }
@@ -97,6 +114,8 @@ test("photo coach loads valid lessons and explains live settings on mobile", asy
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "en-US" });
     await page.goto(appUrl, { waitUntil: "networkidle" });
     const coach = page.getByRole("region", { name: "Photography coach" });
+    assert.equal(await coach.getByRole("button", { name: "Show tips" }).getAttribute("aria-expanded"), "false");
+    await coach.getByRole("button", { name: "Show tips" }).click();
     const goal = page.getByLabel("What are you photographing?");
     for (const [value, label, focal, aperture] of [
       ["portrait", "portrait of my wife", "55", "5.6"],
