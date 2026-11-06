@@ -84,9 +84,10 @@ test("phone layouts fit the viewport with touch controls and collapsed tips", as
       for (const name of ["Distance scale", "Focal length scale", "Aperture scale"]) {
         const labels = await page.getByLabel(name, { exact: true }).locator("p").evaluateAll(nodes => nodes.map(e => ({ left: e.getBoundingClientRect().left, right: e.getBoundingClientRect().right, font: parseFloat(getComputedStyle(e).fontSize) })));
         assert.ok(labels.length >= 2);
+        if (screenWidth < 480) assert.ok(labels.length <= 3, "phone scales show at most three labels");
         labels.forEach((label, i) => {
           assert.ok(label.font >= 14, `${name} font ${label.font} at ${screenWidth}px`);
-          if (i) assert.ok(label.left >= labels[i - 1].right, `${name} labels must not overlap at ${screenWidth}px`);
+          if (i) assert.ok(label.left >= labels[i - 1].right + (screenWidth < 480 ? 24 : 0), `${name} labels must not overlap at ${screenWidth}px`);
         });
       }
       const tips = page.getByRole("button", { name: "Show tips" });
